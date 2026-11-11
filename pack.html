@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prism Pack</title>
+<style>
+:root{
+  --bg:#e9e6e0;--ink:#151515;
+  --pack:#2b3ff0;
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --spring:linear(0,.06,.2,.38,.58,.77,.93,1.06,1.14,1.19,1.2,1.19,1.16,1.13,1.09,1.05,1.02,.99,.97,.96,.96,.96,.97,.98,.99,1,1);
+  --ph:min(420px,58vh,58svh,120vw);--pw:calc(var(--ph)*.69);--cw:calc(var(--pw)*.8);--ch:calc(var(--cw)*1.4);
+  --crimp:calc(var(--ph)*.065);--d:16px;
+  --rainbow:repeating-linear-gradient(115deg,#ff7aa8 0%,#ffd06b 5%,#a8ff8a 10%,#6be2ff 15%,#a08cff 20%,#ff7aa8 25%);
+  --glitter:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 13 0 0 0 -8.2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{overscroll-behavior:none;touch-action:manipulation}
+body{overflow:hidden;color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(120% 90% at 50% 40%,#f5f3ee,var(--bg) 58%,#d9d5cc)}
+i{font-style:normal}
+
+.stage{position:fixed;inset:0;overflow:hidden;perspective:1400px;perspective-origin:50% 50%;user-select:none;-webkit-user-select:none}
+.scene{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
+.scene.flat{transform-style:flat;perspective:1400px;perspective-origin:50% 50%}
+.pack,.card,.flow{position:absolute;left:50%;top:50%;transform-style:preserve-3d;will-change:transform}
+.pack,.flow{width:var(--pw);height:var(--ph);margin:calc(var(--ph)/-2) 0 0 calc(var(--pw)/-2)}
+.flow{pointer-events:none}
+.ground{position:absolute;left:50%;top:50%;width:calc(var(--pw)*.95);height:calc(var(--pw)*.16);margin:calc(var(--pw)*-.08) 0 0 calc(var(--pw)*-.475);
+  border-radius:50%;background:radial-gradient(closest-side,rgb(30 25 15/.3),transparent);filter:blur(6px)}
+
+/* ---------- pouch ---------- */
+.skin{position:absolute;inset:0;backface-visibility:hidden;transform:translateZ(calc(var(--d)/2));--tooth:calc(var(--pw)/24);
+  background:
+    linear-gradient(90deg,rgb(255 255 255/.1),transparent 12%,transparent 88%,rgb(0 0 0/.16)) 0 50%/100% calc(100% - 2*var(--crimp)) no-repeat,
+    linear-gradient(transparent 86%,rgb(0 0 0/.12)) 0 50%/100% calc(100% - 2*var(--crimp)) no-repeat,
+    repeating-linear-gradient(90deg,rgb(0 0 0/.2) 0 1px,rgb(255 255 255/.1) 1px 2px,transparent 2px 5px) 0 0/100% var(--crimp) no-repeat,
+    repeating-linear-gradient(90deg,rgb(0 0 0/.2) 0 1px,rgb(255 255 255/.1) 1px 2px,transparent 2px 5px) 0 100%/100% var(--crimp) no-repeat,
+    var(--pack);
+  mask:
+    conic-gradient(from 135deg at 50% 0,#0000,#000 1deg 89deg,#0000 90deg) 0 0/var(--tooth) calc(var(--tooth)/2) repeat-x,
+    linear-gradient(#000,#000) 0 50%/100% calc(100% - var(--tooth)) no-repeat,
+    conic-gradient(from -45deg at 50% 100%,#0000,#000 1deg 89deg,#0000 90deg) 0 100%/var(--tooth) calc(var(--tooth)/2) repeat-x}
+.skin.back{transform:rotateY(180deg) translateZ(calc(var(--d)/2))}
+/* reflections: a glint down the left edge that slides as the pack turns, and a sheen under the top seal */
+.skin::before,.skin::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none}
+.skin::before{background:linear-gradient(90deg,transparent 2.5%,rgb(255 255 255/.7) 3.2%,rgb(255 255 255/.25) 5.5%,transparent 10%);
+  mask:linear-gradient(transparent 7%,#000 14% 50%,transparent 86%);translate:calc(var(--gx,0)*1%) 0;opacity:var(--gl,.8)}
+.skin::after{background:linear-gradient(transparent 6.5%,rgb(255 255 255/.45) 7%,rgb(255 255 255/.08) 13%,transparent 18%);
+  mask:radial-gradient(60% 40% at calc(var(--gm,50)*1%) 8%,#000,rgb(0 0 0/.25));opacity:var(--gt,.85)}
+.side{position:absolute;top:19%;bottom:8%;width:var(--d);background:color-mix(in srgb,var(--pack),#000 28%)}
+.side.l{left:calc(var(--d)/-2);transform:rotateY(-90deg)}
+.side.r{right:calc(var(--d)/-2);transform:rotateY(90deg)}
+
+.tag{position:absolute;left:9%;top:calc(var(--crimp) + 1%);font:700 calc(var(--pw)*.03)/1 system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgb(255 255 255/.75)}
+.brand{position:absolute;left:9%;top:16%;font:800 calc(var(--pw)*.165)/1 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;letter-spacing:-.045em;color:#fff}
+.series{position:absolute;right:9%;top:18.5%;font:600 calc(var(--pw)*.036)/1 system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgb(255 255 255/.7)}
+.foot{position:absolute;bottom:calc(var(--crimp) + 3.5%);font:500 calc(var(--pw)*.042)/1 system-ui,sans-serif;color:rgb(255 255 255/.8)}
+.foot.l{left:9%}.foot.r{right:9%}
+.back .brand{left:0;right:0;top:22%;text-align:center;font-size:calc(var(--pw)*.1)}
+.blurb{position:absolute;left:10%;right:10%;top:40%;margin:0;text-align:center;font:500 calc(var(--pw)*.044)/1.5 system-ui,sans-serif;color:rgb(255 255 255/.85)}
+.fin{position:absolute;left:45%;width:10%;top:0;bottom:0;background:repeating-linear-gradient(rgb(0 0 0/.14) 0 1px,transparent 1px 4px),linear-gradient(90deg,rgb(0 0 0/.3),rgb(255 255 255/.18) 45%,rgb(0 0 0/.22))}
+
+/* mascot */
+.orb{position:absolute;left:12%;width:76%;top:29%;aspect-ratio:1;transition:scale .35s var(--spring)}
+.orb svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 calc(var(--pw)*.025) calc(var(--pw)*.025) rgb(0 0 0/.28))}
+.orb .chrome{filter:hue-rotate(calc(var(--sh,0)*1deg))}
+.eyes{transform-box:fill-box;transform-origin:center;transition:opacity .09s}
+.mouth{transition:opacity .08s}
+.ouch,.drip,.joy{opacity:0;transition:opacity .1s}
+.drip{transition:opacity .2s,translate .5s var(--ease-out);translate:0 -6px}
+.held .orb{scale:1.06 .92;animation:tremble 90ms steps(2) infinite}
+.held .eyes,.held .mouth{opacity:0}
+.held .ouch{opacity:1}
+.hurt .drip{opacity:1;translate:0 0}
+.tug .orb{scale:.95 1.07}
+@keyframes tremble{50%{translate:1.2px -.8px}}
+
+/* torn edge: the bright metal layer of the foil */
+.lip{position:absolute;inset:0;z-index:2;clip-path:polygon(0 0);background:linear-gradient(100deg,#f4f6fb,#fff 14%,#bfc8da 27%,#fff 42%,#c9d1e1 58%,#fbfcff 72%,#b9c2d4 86%,#eef1f7)}
+.lips{position:absolute;inset:0;z-index:2;filter:drop-shadow(0 1.5px 1.2px rgb(0 0 0/.42))}
+/* the tear strip: slices that each bend a little more, so the loose end curls toward you */
+.flap{position:absolute;inset:0;transform-style:preserve-3d;visibility:hidden}
+.flap.on{visibility:visible}
+.ply{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:0 0}
+.ply .front{transform:translateZ(.4px)}
+.skin.foil{transform:rotateY(180deg) translateZ(.4px);background:linear-gradient(97deg,#e3e8f2,#fff 12%,#cfd7e6 26%,#fff 44%,#dbe1ee 58%,#fff 76%,#d3dbe9)}
+.skin.foil::before,.skin.foil::after{display:none}
+.tone{position:absolute;inset:0;z-index:3;background:#0b0d1c;opacity:0}
+.hit{position:absolute;inset:-24px -16px -8px;margin:0;padding:0;border:0;border-radius:14px;background:none;appearance:none;cursor:grab;touch-action:none;pointer-events:auto;
+  transform:translateZ(calc(var(--d)/2 + 1px));-webkit-tap-highlight-color:transparent}
+.hit:focus-visible{outline:2px solid #0a84ff;outline-offset:8px}
+.held .hit,.tug .hit{cursor:grabbing}
+.rays{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;opacity:0}
+
+/* ---------- cards ---------- */
+.card{width:var(--cw);height:var(--ch);margin:calc(var(--ch)/-2) 0 0 calc(var(--cw)/-2);--px:50;--py:50;--hyp:0;pointer-events:auto}
+.face,.slab{position:absolute;inset:0;border-radius:calc(var(--cw)*.05)}
+.slab{background:var(--edge)}
+.slab:nth-child(1){transform:translateZ(-1.5px)}
+.slab:nth-child(2){transform:translateZ(-3px)}
+.slab:nth-child(3){transform:translateZ(-4.5px);box-shadow:0 26px 40px -16px rgb(20 16 40/.5)}
+.face{overflow:hidden;isolation:isolate;container-type:inline-size;background:var(--frame);color:var(--text)}
+.win{position:absolute;left:6%;right:6%;top:4.3%;height:60%;border-radius:4cqw;overflow:hidden;box-shadow:inset 0 2px 5px rgb(0 0 0/.35),inset 0 0 0 1px rgb(0 0 0/.12)}
+.drop{position:absolute;left:28%;right:28%;bottom:7%;height:8%;border-radius:50%;background:radial-gradient(closest-side,rgb(0 0 0/.5),transparent);filter:blur(1.5px);opacity:0;transition:opacity .4s}
+.out .drop{opacity:1}
+.name{position:absolute;left:7%;top:68.5%;font:700 9.5cqw/1 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;letter-spacing:-.02em}
+.type{position:absolute;right:7%;top:69.5%;padding:1.6cqw 2.6cqw;border-radius:9cqw;background:rgb(127 127 127/.16);font:600 3.6cqw/1 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.rule{position:absolute;left:7%;right:7%;top:83%;height:1px;background:currentColor;opacity:.15}
+.no,.rar{position:absolute;bottom:5.5%;font:500 3.8cqw/1 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.no{left:7%;opacity:.6}.rar{right:7%;font-weight:600;opacity:.8}
+/* the character lies flat in the pack, then stands up off the card */
+.pop{position:absolute;left:12%;width:76%;top:6%;aspect-ratio:1;transform:translateZ(.5px);transition:transform .7s var(--spring);pointer-events:none}
+.pop svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 5px rgb(0 0 0/.3))}
+.out .pop{transform:translateZ(calc(var(--cw)*.14))}
+.glad .joy{opacity:1}
+.glad .eyes,.glad .mouth{opacity:0}
+
+/* foil: rainbow follows the tilt, glitter catches it, glare sits where the light hits */
+.holo,.glare,.glaze{position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none}
+.holo{background:var(--rainbow) calc(var(--px)*1%) calc(var(--py)*1%)/400% 400%;mix-blend-mode:color-dodge;opacity:calc(.3 + var(--hyp)*.6);filter:brightness(.7) contrast(1.5) saturate(1.4)}
+.holo::after{content:"";position:absolute;inset:0;border-radius:inherit;background:inherit;mask:var(--glitter) 0 0/140px 140px;filter:brightness(1.8)}
+.glare{background:radial-gradient(farthest-corner circle at calc(var(--px)*1%) calc(var(--py)*1%),rgb(255 255 255/.8),rgb(255 255 255/.12) 38%,rgb(0 0 0/.3));mix-blend-mode:overlay;opacity:calc(.25 + var(--hyp)*.55)}
+.glaze{z-index:3;box-shadow:inset 0 0 0 1px rgb(255 255 255/.28),inset 0 2px 1.5px rgb(255 255 255/.8),inset 0 -2px 4px rgb(0 0 0/.18);
+  background:radial-gradient(42% 26% at calc(var(--px)*1%) calc(var(--py)*1%),rgb(255 255 255/calc(.1 + var(--hyp)*.5)),#0000),linear-gradient(rgb(255 255 255/.24),#0000 16%)}
+.glaze::before{content:"";position:absolute;inset:0;border-radius:inherit;mask:linear-gradient(#000 30%,#0000 88%);
+  background:linear-gradient(112deg,#0000 44%,rgb(255 255 255/.4) 44.4%,rgb(255 255 255/.13) 52%,#0000 52.4%,#0000 54%,rgb(255 255 255/.22) 54.3%,rgb(255 255 255/.05) 56.4%,#0000 56.7%) calc((100 - var(--px))*1%) 0/220% 100%}
+.common{--frame:linear-gradient(165deg,#fdfcf9,#ebe8e1);--text:#1b1a17;--edge:#cfcac0}
+.common .holo{inset:4.3% 6% 35.7%;border-radius:4cqw;mask:var(--glitter) 0 0/110px 110px;opacity:calc(.55 + var(--hyp)*.45)}
+.common .holo::after{display:none}
+.rare{--frame:linear-gradient(165deg,#272d63,#11142e);--text:#eef0ff;--edge:#0b0d20}
+.ultra{--frame:linear-gradient(135deg,#f9e7a8,#d6a43a 28%,#fff2c4 50%,#c38a26 72%,#f4d57e);--text:#3a2600;--edge:#94661a}
+.ultra .holo{mix-blend-mode:overlay;opacity:calc(.5 + var(--hyp)*.5);
+  background:repeating-conic-gradient(from calc(var(--px)*1deg) at 50% 40%,#0000 0 3deg,rgb(255 255 255/.45) 4deg 5deg,#0000 6deg 10deg),var(--rainbow) calc(var(--px)*1%) calc(var(--py)*1%)/400% 400%}
+.puff{--frame:linear-gradient(165deg,#ffe8dc,#f9c9b3);--edge:#dba68f}
+.puff .win{background:repeating-radial-gradient(circle at 50% 62%,#ffb59c 0 7%,#ffa384 7% 14%)}
+.brick{--frame:linear-gradient(165deg,#ecf8cd,#c9e6a2);--edge:#a4c37a}
+.brick .win{background:repeating-linear-gradient(30deg,rgb(255 255 255/.14) 0 1px,#0000 1px 16px),repeating-linear-gradient(150deg,rgb(255 255 255/.14) 0 1px,#0000 1px 16px),linear-gradient(#1f8a6f,#0f5446)}
+.gem .win{background:radial-gradient(circle at 50% 42%,#7d66ff,#2c1f86 55%,#160f4a)}
+.saturn .win{background:radial-gradient(circle,#fff 0 1px,#0000 1.6px) 0 0/26px 26px,radial-gradient(circle,rgb(255 255 255/.6) 0 .8px,#0000 1.3px) 13px 9px/19px 19px,linear-gradient(165deg,#0a1033,#1f34c8)}
+.sol .win{background:radial-gradient(circle at 50% 56%,rgb(255 232 160/.95),#0000 55%),repeating-conic-gradient(from 0deg at 50% 56%,#ff5fa2 0 7.5deg,#ff8f5c 7.5deg 15deg)}
+
+.fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.again{position:fixed;left:50%;bottom:max(24px,5vh);translate:-50% 0;white-space:nowrap;font:inherit;font-size:15px;padding:12px 18px;border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;
+  border:1px solid rgb(0 0 0/.1);box-shadow:0 1px 2px rgb(0 0 0/.06),0 10px 24px -12px rgb(0 0 0/.25);transition:opacity .3s var(--ease-out),scale .16s var(--ease-out)}
+@starting-style{.again{opacity:0}}
+.again:active{scale:.97}
+.mute{position:fixed;right:16px;top:16px;width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:rgb(255 255 255/.72);color:var(--ink);cursor:pointer;transition:scale .16s var(--ease-out)}
+.mute:active{scale:.94}
+.mute .off,.mute[aria-pressed="true"] .on{display:none}
+.mute[aria-pressed="true"] .off{display:block}
+.hint{position:fixed;left:0;right:0;top:max(20px,4vh);text-align:center;font-size:13px;color:#8a877f;letter-spacing:.02em;transition:opacity .4s}
+@media (pointer:coarse){.slab:nth-child(-n+2){display:none}.orb .chrome{filter:none}}
+</style>
+</head>
+<body>
+<main class="stage">
+  <i class="ground" id="ground"></i>
+  <div class="scene" id="scene">
+    <div class="flow" id="flow" aria-hidden="true"><svg class="rays" id="rays"></svg></div>
+    <div class="pack" id="pack">
+      <i class="side l"></i><i class="side r"></i>
+      <div class="skin front" aria-hidden="true">
+        <span class="tag">Tear here ⟶</span><span class="lips"><i class="lip"></i></span>
+        <b class="brand">prism</b><span class="series">Series 01</span>
+        <div class="orb" id="orb"></div>
+        <span class="foot l">Card pack</span><span class="foot r">5 cards</span>
+      </div>
+      <div class="skin back" aria-hidden="true">
+        <i class="fin"></i><b class="brand">prism</b>
+        <p class="blurb">5 collectible cards<br>One holo in every pack</p>
+      </div>
+      <div class="flap" id="flap" aria-hidden="true"></div>
+      <button class="hit" id="hit" type="button" aria-label="Потяните по верху пачки, чтобы разорвать, или нажмите"></button>
+    </div>
+  </div>
+  <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+</main>
+<p class="hint" id="hint">Потяни вдоль верхнего края — или просто кликни</p>
+<button class="again" id="again" type="button" hidden>Открыть ещё одну</button>
+<button class="mute" id="mute" type="button" aria-label="Звук" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><g class="on"><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.2 6.8a7.5 7.5 0 0 1 0 10.4"/></g><g class="off"><path d="m15.5 9.5 5 5m0-5-5 5"/></g></g></svg></button>
+
+<script>
+const $ = s => document.querySelector(s);
+const scene = $('#scene'), pack = $('#pack'), flap = $('#flap'), hit = $('#hit'), ground = $('#ground'), again = $('#again'), rays = $('#rays'), flow = $('#flow');
+const body = [...pack.querySelectorAll(':scope > .skin')], bodyLip = pack.querySelector('.lips .lip');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, handheld = matchMedia('(pointer: coarse)').matches;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v)), rand = (a, b) => a + Math.random() * (b - a);
+const shuffle = a => { for (let i = a.length; i > 1;) { const j = Math.random() * i-- | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- characters, drawn as SVG: a body plus face layers that can blink, smile or wince ---------- */
+const face = (cx, cy, s = 1, ink = '#1a1420') => `
+  <g class="eyes"><g class="look">
+    <ellipse cx="${cx - 9 * s}" cy="${cy}" rx="${3.4 * s}" ry="${4.8 * s}" fill="${ink}"/><ellipse cx="${cx + 9 * s}" cy="${cy}" rx="${3.4 * s}" ry="${4.8 * s}" fill="${ink}"/>
+    <circle cx="${cx - 10 * s}" cy="${cy - 1.8 * s}" r="${1.2 * s}" fill="#fff"/><circle cx="${cx + 8 * s}" cy="${cy - 1.8 * s}" r="${1.2 * s}" fill="#fff"/>
+  </g></g>
+  <circle cx="${cx - 15 * s}" cy="${cy + 7 * s}" r="${3.2 * s}" fill="#ff6f9a" opacity=".45"/><circle cx="${cx + 15 * s}" cy="${cy + 7 * s}" r="${3.2 * s}" fill="#ff6f9a" opacity=".45"/>
+  <path class="mouth" d="M${cx - 4 * s} ${cy + 8 * s}q${4 * s} ${4 * s} ${8 * s} 0" fill="none" stroke="${ink}" stroke-width="${1.8 * s}" stroke-linecap="round"/>
+  <g class="joy" fill="none" stroke="${ink}" stroke-width="${2 * s}" stroke-linecap="round">
+    <path d="M${cx - 13 * s} ${cy + 1 * s}q${4 * s} ${-6 * s} ${8 * s} 0M${cx + 5 * s} ${cy + 1 * s}q${4 * s} ${-6 * s} ${8 * s} 0"/>
+    <path d="M${cx - 6 * s} ${cy + 7 * s}h${12 * s}q0 ${8 * s} ${-6 * s} ${8 * s}q${-6 * s} 0 ${-6 * s} ${-8 * s}z" fill="#3a1424" stroke-width="${1.4 * s}"/>
+  </g>`;
+const CHAR = {
+  puff: `<defs><radialGradient id="cPuff" cx=".38" cy=".32" r=".75"><stop stop-color="#fff1e8"/><stop offset=".45" stop-color="#ff9a70"/><stop offset="1" stop-color="#e2492a"/></radialGradient></defs>
+    <path d="M50 22l3 -10 3 10" fill="none" stroke="#e2492a" stroke-width="3" stroke-linecap="round"/><circle cx="53" cy="10" r="4" fill="#ffd34d"/>
+    <circle cx="50" cy="56" r="33" fill="url(#cPuff)"/><ellipse cx="38" cy="38" rx="9" ry="5" fill="#fff" opacity=".55" transform="rotate(-30 38 38)"/>${face(50, 56)}`,
+  brick: `<defs><linearGradient id="cBrick" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9ffb0"/><stop offset=".5" stop-color="#7fd05a"/><stop offset="1" stop-color="#3b8f37"/></linearGradient></defs>
+    <rect x="20" y="24" width="60" height="60" rx="14" fill="url(#cBrick)"/><rect x="26" y="28" width="30" height="7" rx="3.5" fill="#fff" opacity=".5"/>${face(50, 56)}`,
+  gem: `<defs><linearGradient id="cGem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e9e3ff"/><stop offset=".5" stop-color="#9b84ff"/><stop offset="1" stop-color="#4b2fd1"/></linearGradient></defs>
+    <path d="M30 22h40l18 22-38 46-38-46z" fill="url(#cGem)"/><path d="M30 22l8 22h24l8-22M12 44h76M38 44l12 46 12-46" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.2"/>${face(50, 54, .9)}`,
+  saturn: `<defs><radialGradient id="cSat" cx=".35" cy=".3" r=".8"><stop stop-color="#dff1ff"/><stop offset=".5" stop-color="#5aa8ff"/><stop offset="1" stop-color="#1c3fc9"/></radialGradient></defs>
+    <ellipse cx="50" cy="54" rx="46" ry="11" fill="none" stroke="#ffd56b" stroke-width="5" transform="rotate(-12 50 54)" opacity=".8"/>
+    <circle cx="50" cy="52" r="28" fill="url(#cSat)"/>
+    <path d="M6 64a46 11 -12 0 0 88 -20" fill="none" stroke="#ffd56b" stroke-width="5" stroke-linecap="round" transform="rotate(0)"/>${face(50, 50, .85)}`,
+  sol: `<defs><radialGradient id="cSol" cx=".4" cy=".35" r=".75"><stop stop-color="#fffbe0"/><stop offset=".5" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff9b1f"/></radialGradient></defs>
+    <path d="M50 8l11 27 29 2-22 19 7 28-25-15-25 15 7-28-22-19 29-2z" fill="url(#cSol)" stroke="#ffb02e" stroke-width="2" stroke-linejoin="round"/>${face(50, 52, .85)}`,
+};
+const MASCOT = `<svg viewBox="0 0 100 100"><defs>
+  <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".3" stop-color="#d8e2ff"/><stop offset=".5" stop-color="#ffffff"/><stop offset=".72" stop-color="#b6c3f2"/><stop offset="1" stop-color="#ffe3f6"/></linearGradient></defs>
+  <g class="chrome"><path d="M50 4C55 33 67 45 96 50C67 55 55 67 50 96C45 67 33 55 4 50C33 45 45 33 50 4Z" fill="url(#chrome)" stroke="#fff" stroke-width=".8"/>
+  <path d="M50 10C53 32 58 40 72 46" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/></g>
+  ${face(50, 50, .8)}
+  <g class="ouch" fill="none" stroke="#1a1420" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M38 46l5 3-5 3M62 46l-5 3 5 3"/><path d="M42 59q2-2 4 0t4 0 4 0 4 0"/></g>
+  <path class="drip" d="M66 30q-4 6 0 8t0-8z" fill="#7cc7ff" stroke="#fff" stroke-width=".6"/></svg>`;
+$('#orb').innerHTML = MASCOT;
+const packEyes = [...pack.querySelectorAll('.eyes')], packLook = [...pack.querySelectorAll('.look')];
+const blink = (list, times = 1) => { for (const e of list) e.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(.08)' }, { transform: 'scaleY(1)' }], { duration: 170, iterations: times, easing: 'cubic-bezier(.77,0,.175,1)' }); };
+
+const DATA = [
+  { id: 'puff', name: 'Puff', type: 'Spark', no: '014', tier: 'common', label: 'Common', mark: '●' },
+  { id: 'brick', name: 'Brick', type: 'Block', no: '027', tier: 'common', label: 'Common', mark: '●' },
+  { id: 'gem', name: 'Gem', type: 'Prism', no: '063', tier: 'rare', label: 'Rare', mark: '◆' },
+  { id: 'saturn', name: 'Saturn', type: 'Orbit', no: '088', tier: 'rare', label: 'Holo rare', mark: '◆◆' },
+  { id: 'sol', name: 'Sol', type: 'Star', no: '120', tier: 'ultra', label: 'Ultra rare', mark: '★' },
+];
+const SKINS = [['Cobalt', '#2b3ff0'], ['Ember', '#f0542c'], ['Grape', '#7a42f0'], ['Pine', '#0e9c79'], ['Night', '#23273d'], ['Bubblegum', '#ec4f9a']];
+const cardHTML = d => `<i class="slab"></i><i class="slab"></i><i class="slab"></i><div class="face"><div class="win"><i class="drop"></i></div><b class="name">${d.name}</b><span class="type">${d.type}</span><i class="rule"></i><span class="no">No. ${d.no}/120</span><span class="rar">${d.mark} ${d.label}</span><i class="holo"></i><i class="glare"></i><i class="glaze"></i></div><div class="pop"><svg viewBox="0 0 100 100">${CHAR[d.id]}</svg></div>`;
+
+/* ---------- springs: SwiftUI-style (response, bounce) ---------- */
+class Spring {
+  constructor(x, response = .5, bounce = 0) { this.x = this.to = x; this.v = 0; this.set(response, bounce); }
+  set(response, bounce = 0) { this.k = (2 * Math.PI / response) ** 2; this.c = 4 * Math.PI * (1 - bounce) / response; return this; }
+  step(h) { this.v += (this.k * (this.to - this.x) - this.c * this.v) * h; this.x += this.v * h; }
+}
+const pose = (o, r, b) => { for (const k in o) o[k] = new Spring(o[k], r, b); return o; };
+
+const N = 96, K = handheld ? 8 : 12, Y_MIN = 7, Y_MAX = 17;
+const P = pose({ x: 0, y: 0, rx: 0, ry: 0, rz: 0 }, .7, .28);
+const eye = pose({ x: 0, y: 0 }, .18, .3);
+const tear = { p: new Spring(0, .1), th: new Spring(0, .28, .35), ph: new Spring(0, .3, .2), dir: 1, last: 0 };
+const squeeze = new Spring(0, .3, .45), glow = new Spring(0, .5);
+const pointer = { x: innerWidth / 2, y: innerHeight / 2, in: false };
+let state, settle, jag, fall, fly, drag, wasDrag = false, cards = [], bits = [], spreadAt = 0, anchor = { y: 0, rz: 0, rx: 0, ry: 0 };
+let t = 0, last = performance.now(), openedAt = 0, blinkAt = 2.5, nudgeAt = 5, PW, PH, skin;
+const fx = $('#fx'), fxc = fx.getContext('2d'), BIT = [new Path2D(), new Path2D(), new Path2D('M0-6 1.3-1.3 6 0 1.3 1.3 0 6-1.3 1.3-6 0-1.3-1.3Z')];
+BIT[0].arc(0, 0, 4.5, 0, 7); BIT[1].roundRect(-3.5, -6, 7, 12, 2);
+const measure = () => { PW = pack.offsetWidth; PH = pack.offsetHeight; const d = Math.min(2, devicePixelRatio); fx.width = innerWidth * d; fx.height = innerHeight * d; };
+
+/* ---------- the tear line: ragged, its own every pack. [x, y, base y, fine tooth, metal width, bend] in % ---------- */
+const place = (q, bend) => { q[5] = bend; q[1] = clamp(q[2] + bend, Y_MIN, Y_MAX) + q[3]; };
+function path() {
+  tear.roll = rand(.65, 1.4);
+  const slope = rand(-6, 6), bow = rand(-2.5, 2.5), freq = rand(1.5, 3.5), ph = rand(0, 6.28), wob = rand(.3, 1), y0 = rand(10, 12.5);
+  let walk = 0;
+  jag = Array.from({ length: N + 1 }, (_, i) => {
+    const x = i / N * 100, s = x / 50 - 1;
+    walk = clamp(walk + rand(-.25, .25) + (Math.random() < .05 ? rand(-1.4, 1.4) : 0), -2, 2);
+    const q = [i && i < N ? x + rand(-.3, .3) : x, 0, y0 + slope * s + bow * (1 - s * s) + wob * Math.sin(s * freq * Math.PI + ph) + walk,
+      rand(-.4, .4) + (Math.random() < .14 ? rand(-1.1, 1.1) : 0), Math.random() < .12 ? rand(1.2, 2.1) : rand(.35, 1.1), 0];
+    place(q, 0); return q;
+  });
+}
+// the untorn part follows the hand: pull down and the line dives, pull up and it climbs
+function steer(k) {
+  const d = tear.dir, i0 = clamp(Math.round((d > 0 ? tear.p.x : 1 - tear.p.x) * N), 0, N);
+  for (let i = i0 + d; i >= 0 && i <= N; i += d) place(jag[i], jag[i0][5] + k * Math.abs(i - i0) * 100 / N);
+}
+const yAt = x => { const f = clamp(x, 0, 100) / 100 * N, i = Math.min(N - 1, f | 0); return jag[i][1] + (jag[i + 1][1] - jag[i][1]) * (f - i); };
+const poly = a => `polygon(${a.map(([x, y]) => `${(+x).toFixed(2)}% ${(+y).toFixed(2)}%`).join(',')})`;
+const mirror = a => a.map(([x, y]) => [100 - x, y]);
+const band = (a, sign) => [...a, ...a.slice().reverse().map(q => [q[0], q[1] + sign * q[4]])];
+const plies = Array.from({ length: K }, () => {
+  const el = document.createElement('div');
+  el.className = 'ply'; el.hidden = true;
+  el.innerHTML = '<div class="skin front"><span class="tag">Tear here ⟶</span><i class="lip"></i><i class="tone"></i></div><div class="skin foil"><i class="tone"></i></div>';
+  flap.append(el);
+  const [front, foil] = el.children;
+  return { el, front, foil, lip: front.querySelector('.lip'), shade: front.querySelector('.tone'), under: foil.querySelector('.tone'), done: false };
+});
+function clips(p) {
+  const d = tear.dir, xt = d > 0 ? p * 100 : 100 - p * 100, yt = yAt(xt), tip = [xt, yt, 0, 0, 0];
+  const torn = jag.filter(([x]) => d > 0 ? x < xt : x > xt);
+  const rest = d > 0 ? [[xt, 0], [100, 0], [100, 100], [0, 100], ...torn, [xt, yt]] : [[0, 0], [xt, 0], [xt, yt], ...torn, [100, 100], [0, 100]];
+  body[0].style.clipPath = poly(rest); body[1].style.clipPath = poly(mirror(rest));
+  bodyLip.style.clipPath = poly(band(d > 0 ? [...torn, tip] : [tip, ...torn], 1));
+  flap.style.transformOrigin = `${xt}% ${yt}%`;
+  const w = 100 / K, lap = .25;
+  plies.forEach((s, k) => {   // each slice of strip is cut once the tear has run past it
+    const lo = d > 0 ? k * w : Math.max(k * w, xt), hi = d > 0 ? Math.min((k + 1) * w, xt) : (k + 1) * w;
+    if (hi <= lo) { s.el.hidden = true; return; }
+    s.el.hidden = false;
+    if (s.done) return;
+    const L = d < 0 && lo === xt ? lo : Math.max(0, lo - lap), R = d > 0 && hi === xt ? hi : Math.min(100, hi + lap);
+    const span = [[L, yAt(L), 0, 0, .8], ...jag.filter(q => q[0] > L && q[0] < R), [R, yAt(R), 0, 0, .8]], piece = [[L, 0], [R, 0], ...span.slice().reverse()];
+    s.front.style.clipPath = poly(piece); s.foil.style.clipPath = poly(mirror(piece)); s.lip.style.clipPath = poly(band(span, -1));
+    s.done = d > 0 ? hi < xt || xt >= 100 : lo > xt || xt <= 0;
+  });
+  // out from the tip each hinge bends further than the last: the strip rolls up
+  const k0 = clamp(Math.floor((d > 0 ? xt - 1e-6 : xt) / w), 0, K - 1), bend = (2.6 + 2.6 * p) * tear.roll, jit = Math.min(1, Math.abs(tear.p.v) * .4) * 1.6;
+  let m = '', sum = 0;
+  for (let n = 0, k = k0; k >= 0 && k < K; n++, k -= d) {
+    const x = ((n ? (d > 0 ? k + 1 : k) * w : xt) / 100 * PW).toFixed(2), a = d * (bend * (.4 + .3 * n) + Math.sin(t * 16 + n * .9) * jit), s = plies[k];
+    sum += a; m += `translateX(${x}px) rotateY(${a.toFixed(2)}deg) rotateZ(${(d * .9 * n / 4).toFixed(2)}deg) translateX(-${x}px) `;
+    s.el.style.transform = m; s.shade.style.opacity = Math.min(.5, Math.abs(sum) / 200).toFixed(2); s.under.style.opacity = Math.max(0, .34 - Math.abs(sum) / 420).toFixed(2);
+  }
+}
+
+function enter() {
+  state = 'enter';
+  const pool = SKINS.filter(s => s !== skin);
+  skin = pool[rand(0, pool.length) | 0]; pack.querySelector('.series').textContent = skin[0];
+  pack.style.setProperty('--pack', skin[1]);
+  path();
+  for (const s of body) s.style.clipPath = '';
+  bodyLip.style.clipPath = ''; for (const s of plies) { s.el.hidden = true; s.done = false; s.el.style.transform = ''; }
+  flap.className = 'flap'; flap.style.transform = ''; rays.style.opacity = 0; pack.style.visibility = flow.style.visibility = ''; pack.classList.remove('held', 'hurt', 'tug'); scene.classList.remove('flat');
+  sprout(); if (!reduce) { load(); sfx?.arrive(); }
+  hit.disabled = false;
+  fall = fly = drag = null; spreadAt = 0; tear.last = 0; tear.dir = 1;
+  for (const s of [tear.p, tear.th, tear.ph, squeeze, glow, ...Object.values(P)]) s.x = s.to = s.v = 0;
+  for (const s of Object.values(P)) s.set(.7, .28);
+  if (!reduce) { P.x.x = innerWidth * .62; P.y.x = -50; P.ry.x = -200; P.rz.x = 16; }   // flies in from the right, spinning round to its front
+  settle = setTimeout(() => state = 'idle', reduce ? 0 : 950);
+}
+function start() { if (!pack.classList.contains('hurt')) sfx?.eep(); flap.classList.add('on'); pack.classList.remove('tug'); pack.classList.add('held', 'hurt'); $('#hint').style.opacity = 0; }
+function finish(response) { tear.p.set(response); tear.p.to = 1; tear.th.to = rand(14, 30); tear.ph.to = -rand(20, 44); }
+
+hit.addEventListener('pointerdown', e => {
+  if (e.button || drag) return;
+  if (state === 'enter') { clearTimeout(settle); state = 'idle'; squeeze.v -= 6; for (const s of Object.values(P)) s.set(.28, .25); }   // caught mid-air
+  if (state !== 'idle') return;
+  hit.setPointerCapture(e.pointerId); sfx?.grab();
+  drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, p0: tear.p.to, moved: false };
+});
+hit.addEventListener('pointermove', e => {
+  if (e.pointerId !== drag?.id || state !== 'idle') return;
+  if (e.pointerType === 'mouse' && !e.buttons) return letGo(e);
+  const dx = e.clientX - drag.x0;
+  let dy = e.clientY - drag.y0;
+  if (!drag.moved) { if (Math.hypot(dx, dy) < 6) return; drag.moved = true; tear.p.set(.1); pack.classList.add('tug'); }
+  if (tear.p.to === 0) {   // nothing tears until the hand really goes sideways; until then it's just a tug
+    drag.dy = dy;
+    if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * .5) return;
+    tear.dir = dx < 0 ? -1 : 1; drag.y0 = e.clientY; dy = 0;
+  }
+  start();
+  tear.p.to = clamp(drag.p0 + (drag.p0 ? Math.abs(dx) : dx * tear.dir) / (PW * .85), tear.p.to, 1);
+  tear.th.to = 6 + tear.p.to * 14 + clamp(-dy * .16, -6, 22);
+  tear.ph.to = -(8 + tear.p.to * 22) - clamp(-dy * .2, 0, 24);
+  drag.k = (drag.k || 0) + (clamp(dy / Math.max(60, Math.abs(dx)), -.7, .7) * PW / PH - (drag.k || 0)) * .3; steer(drag.k);
+});
+const letGo = e => {
+  if (!drag || (e.pointerId !== undefined && e.pointerId !== drag.id)) return;
+  wasDrag = drag.moved; drag = null;
+  if (!wasDrag || state !== 'idle') return;
+  if (tear.p.to > .55) return finish(.18);
+  sfx?.[pack.classList.contains('hurt') ? 'phew' : 'boing']();
+  pack.classList.remove('held', 'hurt', 'tug'); tear.th.to = 3 + tear.p.to * 10; tear.ph.to = -tear.p.to * 14;
+};
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) hit.addEventListener(type, letGo);
+hit.addEventListener('click', e => {
+  if (wasDrag && e.detail) return wasDrag = false;
+  if (state !== 'idle') return;
+  if (!tear.p.to) tear.dir = Math.random() < .5 ? -1 : 1;
+  start(); finish(tear.p.to ? .18 : .55);
+});
+
+function open() {
+  if (drag && hit.hasPointerCapture(drag.id)) hit.releasePointerCapture(drag.id);
+  state = 'open'; openedAt = t; drag = null;
+  tear.p.x = tear.p.to = 1; clips(1);
+  hit.disabled = true;
+  P.rx.set(.3); P.ry.set(.3); P.rx.to = P.ry.to = 0;
+  if (reduce) { pack.style.visibility = flow.style.visibility = 'hidden'; flap.className = 'flap'; }
+  else { fly = { x: 0, y: 0, vx: tear.dir * 240, vy: -1900, th: tear.th.x, vth: 520, ph: tear.ph.x, vph: -320 }; P.y.v += 320; P.rz.v -= tear.dir * 40; burst(); }
+  spawn();
+  sfx?.rip(0); sfx?.pop(!reduce);
+}
+
+/* ---------- cards: shot out of the pack, spiral round the middle, then open out into a row ---------- */
+const ORBIT = 1.25, ease = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+const mouthY = () => Math.max(...jag.map(q => q[1]));
+function spawn() {
+  cards = shuffle([...DATA]).map((d, i) => {
+    const el = document.createElement('div');
+    el.className = `card ${d.tier} ${d.id}`; el.innerHTML = cardHTML(d);
+    el.style.zIndex = DATA.length - i;
+    scene.append(el);
+    const ch = PW * .8 * 1.4;
+    return { el, d, i, slot: DATA.length - 1 - i, face: el.querySelector('.face'), eyes: [...el.querySelectorAll('.eyes')], blinkAt: t + rand(.6, 3.2), phase: 'in', hover: false, hx: .5, hy: .5,
+      p: pose({ x: P.x.x, y: P.y.x - PH / 2 + PH * (mouthY() + 1) / 100 + ch / 2, z: 3.5 - i * 1.75, rx: 0, ry: 0, rz: P.rz.x, s: .94 }, .55, .22) };
+  });
+  if (reduce) for (const c of cards) { c.phase = 'spread'; c.f = fan(c); c.el.classList.add('out'); for (const k in c.f) c.p[k].x = c.p[k].to = c.f[k]; }
+}
+function unwind() {
+  spreadAt = t; scene.classList.add('flat'); sfx?.swirl(ORBIT);
+  for (const c of cards) {
+    const p = c.p, f = c.f = fan(c);
+    Object.assign(c, { phase: 'orbit', from: t + c.i * .03, x0: p.x.x, y0: p.y.x, vy: p.y.v, rz0: p.rz.x, even: -c.slot * 2 * Math.PI / cards.length, end: Math.PI / 2 - (c.slot - (cards.length - 1) / 2) * .55 });
+    c.landAt = c.from + ORBIT; p.s.to = f.s;
+    for (const k in p) if (k !== 's') p[k].k = p[k].c = p[k].v = 0;   // from here the path is a pure function of time
+  }
+}
+function orbit(c) {
+  const p = c.p, f = c.f, u = clamp((t - c.from) / ORBIT, 0, 1), turn = 1 - (1 - u) ** 2, out = ease(.52, 1, u), ring = Math.sin(Math.min(1, u / .42) * Math.PI / 2) * (1 - out);
+  const a = c.end + (1 - turn) * (c.even - c.end + Math.PI * 2.5), sin = Math.sin(a), cos = Math.cos(a), W = Math.min(innerWidth * .33, 430);
+  const mid = c.y0 + c.vy / 9 * (1 - Math.exp(-9 * Math.max(0, t - c.from))), cy = mid + (-innerHeight * .03 - mid) * ease(0, .42, u);
+  p.x.x = c.x0 * (1 - out) + f.x * out + cos * W * ring;
+  p.y.x = cy * (1 - out) + f.y * out + sin * W * .2 * ring;
+  p.z.x = f.z * out + sin * 300 * ring;
+  p.rz.x = c.rz0 * (1 - out) + f.rz * out - cos * 8 * ring; p.ry.x = -cos * 26 * ring; p.rx.x = 7 * ring;
+  if (u === 1) { c.phase = 'spread'; c.el.classList.add('out'); for (const k in p) p[k].set(.5, .22); sfx?.land(c.d.id, c.slot); }
+}
+function fan(c) {
+  const n = cards.length, m = c.slot - (n - 1) / 2, cw = c.el.offsetWidth, vw = innerWidth;
+  if (innerHeight > vw * 1.15) {   // tall screen: two up, one in the middle, two down
+    const w = Math.min((vw - 34) / 2, (innerHeight - 150) / 2.72 / 1.4, cw), [X, Y, rz] = [[-1, -1, -4], [1, -1, 4], [0, 0, 0], [-1, 1, 3], [1, 1, -3]][c.slot];
+    return { x: X * (w / 2 + 5), y: -15 + Y * w * 1.4 * .86, z: X || Y ? 0 : 40, rz, s: w / cw };
+  }
+  const s = clamp((vw - 48) / (cw * (1 + (n - 1) * 1.08)), .6, 1), w = cw * s, gap = Math.min(w * 1.08, (vw - 40 - w) / (n - 1)), tight = gap < w;
+  return { x: m * gap, y: -innerHeight * .03 + m * m * (tight ? 9 : 5) * s, z: tight ? m * 40 : 0, rz: m * (tight ? 7 : 2), s };
+}
+// which card is under the pointer, from where the cards rest (not where they've tilted to), so it never flickers
+function aimed() {
+  let best = null;
+  for (const c of cards) {
+    if (c.phase !== 'spread') continue;
+    const f = c.f, near = 1400 / (1400 - f.z), a = f.rz * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a), w = c.el.offsetWidth * f.s * near, h = w * 1.4;
+    const dx = pointer.x - (innerWidth / 2 + f.x * near), dy = pointer.y - (innerHeight / 2 + f.y * near), hx = (dx * cos + dy * sin) / w + .5, hy = (dy * cos - dx * sin) / h + .5;
+    if (hx >= 0 && hx <= 1 && hy >= 0 && hy <= 1 && (!best || f.z >= best.f.z)) { best = c; c.hx = hx; c.hy = hy; }
+  }
+  return best;
+}
+
+/* ---------- confetti: paper in still air. gravity, quadratic drag, side-slip as it tumbles ---------- */
+const BANDS = ['#ff3d6e', '#ff8a3d', '#ffd34d', '#4fd9a0', '#4fb2ff', '#8b6cff', '#ff5cc8'];
+function load() { bits = bits.filter(b => b.age !== undefined); for (let i = 0; i < (handheld ? 130 : 240); i++) bits.push({ kind: i % 3, fill: [...BANDS, '#fff'][i % 8] }); }
+function burst() {
+  bits.forEach((b, i) => {
+    if (b.age !== undefined) return;
+    const lx = rand(6, 94), vt = 260 + 400 * Math.random() ** 1.5;
+    Object.assign(b, { inside: true, lx, ly: yAt(lx) + rand(1, 16), up: rand(900, 2600), a: ((lx - 50) / 50 + rand(-.5, .5)) * clamp(innerWidth / 1000, .5, 1), sp: rand(500, 2700), r: rand(0, 360), spin: rand(-700, 700),
+      c: 2600 / vt / vt, slip: rand(900, 2600), glide: Math.sign(lx - 50) * rand(-200, 900), sc: rand(.9, 1.9), ph: rand(0, 6.28), age: i < 50 ? 0 : -rand(0, .22), x: 0, y: 0, z: 0 });
+  });
+}
+
+/* ---------- rainbow flow: a fan of wavy ribbons pouring out of the torn opening ---------- */
+const NR = handheld ? 24 : 34, STEP = handheld ? 3.5 : 2.5, R0 = 45;
+const tint = (hex, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - k) + 255 * k).toString(16).padStart(2, '0')).join('');
+let lines = [], ribbons = [], bandEls = [], gradEls = [], motes = [], reach = 0, drained = false, Y0 = 30, H = 145;
+function sprout() {
+  H = PH / PW * 100; Y0 = (Y_MAX + 2) / 100 * H;   // svg units: 1 = 1% of the pouch's width. ribbons start below the deepest tear, hidden by the front
+  rays.setAttribute('viewBox', `0 0 100 ${H.toFixed(2)}`);
+  const k0 = rand(0, 7) | 0;
+  lines = Array.from({ length: NR + 1 }, (_, j) => {
+    const x = 3 + 94 * j / NR, a = Math.atan2(x - 50, R0) + rand(-.012, .012);
+    return { x, ux: Math.sin(a), uy: -Math.cos(a), ph: j * .35 + rand(-.1, .1) };
+  });
+  ribbons = Array.from({ length: NR }, (_, j) => ({ mx: (lines[j].x + lines[j + 1].x) / 2, c: BANDS[(j + k0) % 7], on: false, len: 0, g: new Spring(0, .4, .3) }));
+  rays.innerHTML = `<defs>${ribbons.map((b, j) => `<linearGradient id="rb${j}" gradientUnits="userSpaceOnUse"><stop stop-color="${tint(b.c, .75)}"/><stop offset=".08" stop-color="${tint(b.c, .75)}"/><stop offset=".35" stop-color="${b.c}"/><stop offset=".8" stop-color="${b.c}"/><stop offset="1" stop-color="${b.c}" stop-opacity="0"/></linearGradient>`).join('')}
+    <radialGradient id="mote"><stop offset=".2" stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <filter id="bloom" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.4"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <g${handheld ? '' : ' filter="url(#bloom)"'}>${ribbons.map((b, j) => `<path fill="url(#rb${j})"/>`).join('')}${'<circle fill="url(#mote)"/>'.repeat(10)}</g>`;
+  bandEls = [...rays.querySelectorAll('path')]; gradEls = [...rays.querySelectorAll('linearGradient')];
+  motes = [...rays.querySelectorAll('circle')].map(el => ({ el, j: -1, u: Math.random(), v: rand(.2, .8), sp: rand(.3, .5), r: rand(1.6, 3) }));
+  fit();
+}
+function fit() { const u = PW / 100; reach = ((innerHeight / 2 + PH * .4) / u) * 1.25 + 30; }   // long enough to leave the top of the screen
+function pour(dt) {
+  const ft = reduce ? 0 : t, xt = tear.dir > 0 ? tear.p.x * 100 : 100 - tear.p.x * 100, sway = Math.sin(ft * .9) * 1.5;
+  const go = !reduce && (state === 'open' || state === 'spread'), s = t - openedAt;
+  // thrown: the front races off the top and the tail follows it up, all gone in under a second
+  const far = go ? reach * (1 + 1.2 * (1 - (1 - Math.min(1, s / .5)) ** 2)) : reach, tail = go ? reach * 2.3 * clamp((s - .3) / .6, 0, 1) ** 2 : 0, carry = go ? 45 * s * s / (s + .25) : 0;
+  for (const b of ribbons) {
+    if (state === 'idle' && tear.p.x > 0 && (tear.dir > 0 ? b.mx < xt : b.mx > xt)) b.on = true;
+    b.g.to = b.on ? 1 : 0; b.len = reach * Math.max(0, b.g.x) + far - reach;
+  }
+  const at = (j, d) => {   // a point d along edge j, pushed sideways by a wave that grows and travels outwards
+    const e = lines[j], k = Math.min(1, d / 90), w = (.4 + 2 * k) * Math.sin(((d - carry) / 22 - ft * 1.4) * 2 * Math.PI + e.ph) + sway * k;
+    return [e.x + e.ux * d - e.uy * w, Y0 + e.uy * d + e.ux * w];
+  };
+  const edges = lines.map((e, j) => {   // computed once and shared by both neighbours, at the same distances, so no seam opens
+    const len = Math.max(ribbons[j - 1]?.len || 0, ribbons[j]?.len || 0), i0 = Math.max(0, Math.floor(tail / STEP)), pts = [];
+    if (len > i0 * STEP) for (let i = i0; ; i++) { const d = Math.min(i * STEP, len), [x, y] = at(j, d); pts.push(`${x.toFixed(2)} ${y.toFixed(2)}`); if (d >= len) break; }
+    return { i0, pts };
+  });
+  const upto = (e, len) => e.pts.slice(0, Math.max(0, Math.ceil(len / STEP) - e.i0 + 1));
+  ribbons.forEach((b, j) => {
+    const A = upto(edges[j], b.len), B = upto(edges[j + 1], b.len);
+    bandEls[j].setAttribute('d', A.length > 1 && B.length > 1 ? `M${A.join('L')}L${B.reverse().join('L')}Z` : '');
+    const ux = (lines[j].ux + lines[j + 1].ux) / 2, uy = (lines[j].uy + lines[j + 1].uy) / 2, g = gradEls[j], from = tail, to = Math.max(tail + 10, b.len);
+    g.setAttribute('x1', (b.mx + ux * from).toFixed(2)); g.setAttribute('y1', (Y0 + uy * from).toFixed(2)); g.setAttribute('x2', (b.mx + ux * to).toFixed(2)); g.setAttribute('y2', (Y0 + uy * to).toFixed(2));
+    g.firstChild.setAttribute('stop-opacity', tail > 0 ? 0 : 1);
+  });
+  drained = go && s > .9;
+  const out = ribbons.flatMap((b, j) => b.on ? [j] : []);
+  for (const m of motes) {   // little motes of light drifting out inside the flow
+    if (!reduce) m.u += dt * m.sp;
+    if (m.u > 1 || !ribbons[m.j]?.on) { if (m.u > 1) m.u -= 1; if (!out.length) { m.el.setAttribute('opacity', 0); continue; } m.j = out[rand(0, out.length) | 0]; }
+    const len = ribbons[m.j].len, d0 = Math.max(0, tail), d = d0 + m.u * Math.max(0, len - d0), [x1, y1] = at(m.j, d), [x2, y2] = at(m.j + 1, d);
+    m.el.setAttribute('cx', (x1 + (x2 - x1) * m.v).toFixed(2)); m.el.setAttribute('cy', (y1 + (y2 - y1) * m.v).toFixed(2));
+    m.el.setAttribute('r', (m.r * (.6 + m.u * .7)).toFixed(2)); m.el.setAttribute('opacity', (Math.sin(Math.PI * m.u) * Math.min(1, len / 20)).toFixed(2));
+  }
+}
+
+/* ---------- frame ---------- */
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
+  const motion = reduce ? 0 : 1, held = pack.classList.contains('held');
+  const tug = motion && drag?.moved && !tear.p.to ? Math.sign(drag.dy) * 170 * (1 - 1 / (1 + Math.abs(drag.dy) / 170)) : 0;   // pulled up/down it stretches after the hand and boings back
+  squeeze.to = tug ? -Math.abs(tug) / 90 : held && state === 'idle' ? motion : 0;
+
+  if (state === 'enter' || state === 'idle') {
+    const tilt = (drag?.moved ? .25 : 1) * (reduce ? .5 : 1);
+    const nx = pointer.in ? clamp(pointer.x / innerWidth * 2 - 1, -1, 1) : 0, ny = pointer.in ? clamp(pointer.y / innerHeight * 2 - 1, -1, 1) : 0;
+    P.y.to = Math.sin(t * 1.4) * 7 * motion + tug;
+    P.ry.to = nx * 22 * tilt; P.rx.to = -ny * 16 * tilt - squeeze.x * 6;
+    P.rz.to = Math.sin(t * .9) * 1.6 * motion - (held && tear.p.x > 0 ? tear.dir * tear.p.x * 3 : 0);
+    if (state === 'idle' && !drag && tear.p.to < 1 && motion && t > nudgeAt) { P.rz.v += (Math.random() < .5 ? -1 : 1) * 70; if (tear.p.to) tear.th.v += 120; nudgeAt = t + rand(4, 7); }   // left alone it wiggles
+  }
+  if (t > blinkAt) { blinkAt = t + rand(2.2, 5.5); if (motion && !held) blink(packEyes); }
+  { const dx = pointer.x - (innerWidth / 2 + P.x.x), dy = pointer.y - (innerHeight / 2 + P.y.x), dl = Math.hypot(dx, dy) || 1, k = pointer.in ? Math.min(1, dl / 260) * 2.2 : 0; eye.x.to = dx / dl * k; eye.y.to = dy / dl * k; }
+
+  const springs = [...Object.values(P), ...Object.values(eye), tear.p, tear.th, tear.ph, squeeze, glow, ...ribbons.map(b => b.g), ...cards.flatMap(c => Object.values(c.p))];
+  const n = Math.ceil(dt * 240), h = dt / n;
+  for (let i = 0; i < n; i++) for (const s of springs) s.step(h);
+
+  if (state === 'idle' && tear.p.x > 0) {
+    const p = Math.min(1, tear.p.x), dp = p - tear.last; tear.last = p;
+    sfx?.rip(dp > 0 ? (dp / Math.max(dt, .004) / 4) ** .6 : 0);
+    if (dp > 0 && motion) { P.rz.v += rand(-1, 1) * Math.min(dp, .02) * 900; P.y.v += dp * 420; tear.th.v += dp * 300; squeeze.v += dp * 20; for (const b of ribbons) if (b.on) b.g.v += dp * 6; }
+    if (dp > 0 || Math.abs(tear.p.v) > .001) clips(p);
+    const draft = drag ? 0 : motion * (Math.sin(t * 5.3) + Math.sin(t * 8.7) * .5);   // the loose strip flaps in the draft
+    flap.style.transform = `rotateZ(${(tear.th.x + draft) * tear.dir}deg) rotateX(${tear.ph.x + draft * 1.5}deg)`;
+    if (p > .985 && tear.p.to >= 1) open();
+  }
+  glow.to = (state === 'idle' && tear.p.x > 0) || ((state === 'open' || state === 'spread') && !reduce && !drained) ? 1 : 0;
+  if (glow.x > .003 || glow.to) { rays.style.opacity = clamp(glow.x, 0, 1).toFixed(3); pour(dt); }
+  if (fly) {
+    fly.vy += 2600 * dt; fly.x += fly.vx * dt; fly.y += fly.vy * dt; fly.th += fly.vth * dt; fly.ph += fly.vph * dt;
+    flap.style.transform = `translate3d(${fly.x}px,${fly.y}px,0) rotateZ(${fly.th * tear.dir}deg) rotateX(${fly.ph}deg)`;
+    if (t - openedAt > 1.6) { fly = null; flap.className = 'flap'; }
+  }
+  if (state === 'open' && !fall && !reduce && t - openedAt > .02) fall = { y: 0, v: 1500 * PH / 420 };   // the deck kicks the pack down as it leaves
+  if (fall && fall.y < innerHeight) { fall.v += 2800 * dt; fall.y += fall.v * dt; P.rz.to = tear.dir * 9; }
+
+  if (pack.style.visibility !== 'hidden') {
+    const fy = fall ? fall.y : 0;
+    pack.style.transform = `translate3d(${P.x.x}px,${P.y.x + fy}px,0) rotateX(${P.rx.x}deg) rotateY(${P.ry.x}deg) rotateZ(${P.rz.x}deg) scale3d(${1 + .03 * squeeze.x},${1 - .06 * squeeze.x},1)`;
+    if (!fall) {
+      const ps = pack.style;
+      ps.setProperty('--gx', clamp(-P.ry.x * .12, -1.5, 3).toFixed(2)); ps.setProperty('--gl', clamp(.8 - P.ry.x * .012, .45, 1).toFixed(2));
+      ps.setProperty('--gm', clamp(50 + P.ry.x * 1.2, 20, 80).toFixed(1)); ps.setProperty('--gt', clamp(.85 + P.rx.x * .015, .5, 1).toFixed(2));
+      ps.setProperty('--sh', clamp(P.ry.x * 1.2 + P.rx.x * .8, -22, 22).toFixed(1));
+      for (const el of packLook) el.setAttribute('transform', `translate(${eye.x.x.toFixed(2)} ${eye.y.x.toFixed(2)})`);
+    }
+    if (fy > innerHeight) pack.style.visibility = 'hidden';
+  }
+  if (!fall) { anchor = { y: P.y.x, rz: P.rz.x, rx: P.rx.x, ry: P.ry.x }; flow.style.transform = pack.style.transform; }   // the flow rides with the pack until it drops,
+  else {   // then stands straight up however the pack was leaning
+    const k = Math.exp(-dt / .05); anchor.rz *= k; anchor.rx *= k; anchor.ry *= k;
+    flow.style.transform = `translate3d(${P.x.x}px,${anchor.y}px,0) rotateX(${anchor.rx}deg) rotateY(${anchor.ry}deg) rotateZ(${anchor.rz}deg)`;
+  }
+  ground.style.transform = `translate3d(${P.x.x}px,${PH / 2 + 26}px,0) scale(${1 - P.y.x / 300})`;
+  ground.style.opacity = state === 'enter' || state === 'idle' ? clamp(1 - Math.abs(P.x.x) / 300, 0, 1) : fall ? clamp(1 - fall.y / 160, 0, 1) : 0;
+
+  // cards: fired straight up the pack, then unwound into the row
+  if (state === 'open' && !spreadAt && reduce) { spreadAt = t; scene.classList.add('flat'); }
+  if (state === 'open' && !spreadAt && !reduce && cards.every(c => c.phase === 'shot')) {
+    const mouth = P.y.x + (fall ? fall.y : 0) + PH * (mouthY() / 100 - .5), ch = PW * 1.12;
+    if (cards.every(c => c.p.y.x + ch * .36 < mouth)) unwind();
+  }
+  for (const c of cards) if (c.phase === 'orbit') orbit(c);
+  [...cards].sort((a, b) => a.p.z.x - b.p.z.x).forEach((c, i) => c.rank = i + 1);
+  const hot = pointer.in || pointer.tap ? aimed() : null, tall = innerHeight > innerWidth * 1.15; pointer.tap = false;
+  for (const c of cards) {
+    const p = c.p, since = t - openedAt;
+    if (c.phase === 'in' && !reduce && since > c.i * .022) { c.phase = 'shot'; p.s.to = 1; p.y.k = 0; p.y.c = 1.2; p.y.v = -rand(1250, 1450) * PH / 420; }
+    if (c.phase === 'spread') {
+      if (c === hot) c.until = t + (pointer.touch ? 1.1 : 0);
+      c.hover = c === hot || t < c.until;
+      const f = c.f, w = t * .8 + c.i * 1.9, on = c.hover;
+      if (on !== c.glad) { c.glad = on; c.el.classList.toggle('glad', on); if (on) sfx?.lift(c.slot); }
+      if (motion && t > c.blinkAt) { c.blinkAt = t + rand(2.2, 5.5); blink(c.eyes, Math.random() < .25 ? 2 : 1); }
+      p.x.to = f.x; p.s.to = f.s;
+      p.y.to = f.y + (on ? -16 : Math.sin(w * 1.2) * 5 * motion);
+      p.z.to = f.z + (on ? 110 : 0);
+      p.rz.to = on ? f.rz * .3 : f.rz;
+      p.rx.to = on ? (.5 - c.hy) * 36 : Math.cos(w * .9) * 4 * motion;
+      p.ry.to = on ? (c.hx - .5) * 40 : Math.sin(w) * 8 * motion;
+    }
+    // inside the pack a card copies its tilt; once out, motion leans it like a card through air
+    const loose = c.phase === 'spread' || c.phase === 'orbit';
+    const rx = loose ? p.rx.x - clamp(p.y.v * .006, -8, 8) : P.rx.x, ry = loose ? p.ry.x + clamp(p.x.v * .008, -12, 12) : P.ry.x;
+    c.el.style.transform = `translate3d(${p.x.x}px,${p.y.x}px,${p.z.x}px) rotateZ(${p.rz.x}deg) rotateX(${rx}deg) rotateY(${ry}deg) scale(${p.s.x})`;
+    if (loose) c.up = c.hover || (c.up && p.z.x > c.f.z + 30);
+    c.el.style.zIndex = c.up ? 9 : c.phase === 'orbit' || tall ? c.rank : cards.length - c.i;
+    if (c.phase === 'spread') {   // foil eases in once the card has landed
+      const a = reduce ? 1 : clamp((t - c.landAt - .2) / .5, 0, 1);
+      if (a) {
+        const nx = clamp(ry / 24, -1, 1) * a, ny = clamp(rx / 24, -1, 1) * a, st = c.face.style;
+        st.setProperty('--px', (50 + nx * 50).toFixed(1)); st.setProperty('--py', (50 - ny * 50).toFixed(1)); st.setProperty('--hyp', Math.min(1, Math.hypot(nx, ny)).toFixed(3));
+      }
+    }
+  }
+  if (state === 'open' && spreadAt && t > spreadAt + (reduce ? .1 : ORBIT + .3)) { state = 'spread'; again.hidden = false; }
+
+  // confetti
+  fxc.setTransform(1, 0, 0, 1, 0, 0); fxc.clearRect(0, 0, fx.width, fx.height);
+  const D = fx.width / innerWidth, ox = innerWidth / 2, oy = innerHeight / 2, R = Math.PI / 180;
+  bits = bits.filter(b => {
+    if (b.age === undefined || (b.age += dt) < 0) return true;
+    if (b.inside) {   // hidden inside the pack until it rises past the torn edge, and only then does it fan out
+      b.ly -= b.up * dt / PH * 100; b.r += b.spin * dt;
+      if (b.ly > yAt(b.lx)) return true;
+      b.x = P.x.x + (b.lx - 50) / 100 * PW; b.y = P.y.x + (fall ? fall.y : 0) + (b.ly - 50) / 100 * PH; b.z = 9;
+      b.inside = false; b.age = 0; b.r0 = b.r; b.vx = Math.sin(b.a) * b.sp; b.vy = -Math.cos(b.a) * b.sp; b.vz = rand(0, 160);
+    }
+    b.z += b.vz * dt; b.vy += 2600 * dt; b.vx += (Math.sin(b.ph) * b.slip + b.glide) * dt;
+    const v = Math.hypot(b.vx, b.vy), f = 1 / (1 + b.c * Math.min(1, .06 + b.age / .45) * v * dt), turn = .35 + v / 800;   // drag solved implicitly so a hard pop can't overshoot
+    b.vx *= f; b.vy *= f; b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.spin * turn * dt; b.ph += 7 * turn * dt;
+    if (b.y >= innerHeight / 2 + 40) return false;
+    const p = 1400 / (1400 - b.z), k = D * p * b.sc, cr = Math.cos(b.r * R), sr = Math.sin(b.r * R), cq = Math.cos((b.r - b.r0) * .7 * R);   // tumbling foreshortens it
+    fxc.setTransform(k * cr, k * sr, -k * sr * cq, k * cr * cq, (ox + b.x * p) * D, (oy + b.y * p) * D);
+    fxc.fillStyle = b.fill; fxc.fill(BIT[b.kind]);
+    return true;
+  });
+  requestAnimationFrame(frame);
+}
+
+const track = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.in = true; pointer.touch = e.pointerType !== 'mouse'; };
+addEventListener('pointermove', track);
+addEventListener('pointerdown', e => { track(e); pointer.tap = true; });
+document.documentElement.addEventListener('pointerleave', () => pointer.in = false);
+addEventListener('blur', e => { letGo(e); pointer.in = false; });
+addEventListener('resize', () => { measure(); fit(); if (state === 'idle' && tear.p.x > 0) clips(Math.min(1, tear.p.x)); for (const c of cards) if (c.f) c.f = fan(c); });
+again.addEventListener('click', () => { sfx?.tick(); for (const c of cards) c.el.remove(); cards = []; again.hidden = true; enter(); });
+
+/* ---------- sound: all synthesised. foil is shaped noise, the rest are toy chimes and tiny voices on one pentatonic scale ---------- */
+const VOLUME = .8, note = i => 440 * 2 ** ((72 + 12 * (i / 5 | 0) + [0, 2, 4, 7, 9][i % 5] - 69) / 12);
+function voices(ctx) {
+  const sr = ctx.sampleRate, now = () => ctx.currentTime;
+  const master = ctx.createGain(), limit = ctx.createDynamicsCompressor(), room = ctx.createConvolver(), wet = ctx.createGain();
+  limit.threshold.value = -9; limit.ratio.value = 8; master.gain.value = VOLUME; wet.gain.value = .3;
+  master.connect(limit).connect(ctx.destination); room.connect(wet).connect(master);
+  const sheet = (ch, sec, fill) => { const b = ctx.createBuffer(ch, sec * sr | 0, sr); for (let c = 0; c < ch; c++) fill(b.getChannelData(c)); return b; };
+  const hiss = sheet(1, 2, d => { for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; });
+  const foil = sheet(1, 2, d => { for (let n = 0; n < 900; n++) { const s = Math.random() * (d.length - 400) | 0, a = Math.random() ** 3 * (Math.random() < .5 ? -1 : 1), len = 30 + Math.random() * 260 | 0; for (let i = 0; i < len; i++) d[s + i] += a * (Math.random() * 2 - 1) * Math.exp(-i / len * 5); } });
+  room.buffer = sheet(2, .8, d => { let soft = 0; for (let i = 0; i < d.length; i++) { const k = i / d.length; soft += (Math.random() * 2 - 1 - soft) * (.5 - .42 * k); d[i] = soft * (1 - k) ** 3; } });
+  const env = (pm, at, peak, attack, dur) => { pm.setValueAtTime(.0001, at); pm.exponentialRampToValueAtTime(peak, at + attack); pm.exponentialRampToValueAtTime(.0001, at + dur); };
+  const out = (node, send) => { node.connect(master); if (send) { const s = ctx.createGain(); s.gain.value = send; node.connect(s).connect(room); } };
+  function air({ at = now(), buffer = hiss, type = 'bandpass', from, to, Q = 1, gain, attack = .004, dur, send = 0, pan = [0, 0] }) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), p = ctx.createStereoPanner();
+    s.buffer = buffer; s.loop = true; f.type = type; f.Q.value = Q;
+    f.frequency.setValueAtTime(from, at); f.frequency.exponentialRampToValueAtTime(to, at + dur);
+    env(g.gain, at, gain, attack, dur);
+    if (pan.length > 2) p.pan.setValueCurveAtTime(pan, at, dur); else { p.pan.setValueAtTime(pan[0], at); p.pan.linearRampToValueAtTime(pan[1], at + dur); }
+    s.connect(f).connect(g).connect(p); out(p, send); s.start(at, Math.random() * 1.8); s.stop(at + dur + .02);
+  }
+  function chime(freq, { at = now(), gain = .1, dur = .5, send = .5, pan = 0 } = {}) {
+    const g = ctx.createGain(), p = ctx.createStereoPanner(); g.gain.value = gain; p.pan.value = pan; g.connect(p); out(p, send);
+    for (const [ratio, level, life] of [[1, 1, 1], [3.9, .18, .22], [9.2, .05, .08]]) { const o = ctx.createOscillator(), a = ctx.createGain(), d = Math.max(.03, dur * life); o.frequency.value = freq * ratio; env(a.gain, at, level, .002, d); o.connect(a).connect(g); o.start(at); o.stop(at + d + .02); }
+  }
+  function coo(freq, shape, { at = now(), gain = .06, attack = .008, wobble = 0, send = .25, pan = 0, wave = 'triangle' } = {}) {
+    const o = ctx.createOscillator(), g = ctx.createGain(), p = ctx.createStereoPanner(), dur = shape.at(-1)[0] + .05;
+    o.type = wave; p.pan.value = pan;
+    for (const [s, m] of shape) if (s) o.frequency.exponentialRampToValueAtTime(freq * m, at + s); else o.frequency.setValueAtTime(freq * m, at);
+    env(g.gain, at, gain, attack, dur);
+    if (wobble) { const l = ctx.createOscillator(), d = ctx.createGain(); l.frequency.value = 24; d.gain.value = freq * wobble; l.connect(d).connect(o.frequency); l.start(at); l.stop(at + dur + .02); }
+    o.connect(g).connect(p); out(p, send); o.start(at); o.stop(at + dur + .02);
+  }
+  const rb = ctx.createBufferSource(), rs = ctx.createBiquadFilter(), rt = ctx.createBiquadFilter(), rg = ctx.createGain();
+  rb.buffer = foil; rb.loop = true; rs.type = 'bandpass'; rs.Q.value = .6; rt.type = 'lowpass'; rt.frequency.value = 6000; rg.gain.value = 0;
+  rb.connect(rs).connect(rt).connect(rg); out(rg, .12); rb.start();
+  let level = 0;
+  return {
+    ctx,
+    mute(off) { master.gain.setTargetAtTime(off ? 0 : VOLUME, now(), .015); },
+    rip(v) { v = clamp(v, 0, 1); if (Math.abs(v - level) < .01 && (v || !level)) return; const up = v > level; level = v; rg.gain.setTargetAtTime(v ** .8 * .15, now(), up ? .008 : .05); rs.frequency.setTargetAtTime(1800 + 2000 * v, now(), .02); rb.playbackRate.setTargetAtTime(.7 + .8 * v, now(), .02); },
+    grab() { air({ buffer: foil, from: 3000, to: 2200, Q: .7, gain: .3, attack: .003, dur: .09 }); },
+    eep() { coo(1250, [[0, .82], [.05, 1.25], [.13, 1.02]], { gain: .05, wobble: .04 }); },
+    phew() { coo(900, [[0, 1.1], [.24, .6]], { gain: .05, send: .45 }); air({ from: 1500, to: 700, Q: .6, gain: .03, attack: .02, dur: .26 }); },
+    boing() { coo(340, [[0, .8], [.05, 1.6], [.12, .85], [.2, 1.25], [.3, 1]], { gain: .12, send: .2 }); },
+    pop(flies) {
+      const at = now();
+      air({ at, from: 5000, to: 1800, Q: .9, gain: .14, attack: .002, dur: .1 });
+      coo(300, [[0, .8], [.05, 3.4]], { at, gain: .3, send: .15 });
+      if (!flies) return;
+      air({ at: at + .01, from: 500, to: 3200, Q: .8, gain: .09, attack: .2, dur: .7, send: .6 });
+      coo(540, [[0, 1], [.6, 3]], { at: at + .02, gain: .03, attack: .22, wobble: .012, send: .6 });
+      for (let i = 0; i < 3; i++) chime(note(8 + Math.random() * 5 | 0), { at: at + .12 + Math.random() * .5, gain: .018, dur: .35, send: .9, pan: rand(-.7, .7) });
+    },
+    swirl(len) { air({ from: 700, to: 1800, Q: .9, gain: .12, attack: len * .4, dur: len, send: .4, pan: Float32Array.from({ length: 64 }, (_, i) => { const u = i / 63; return Math.cos((1 - (1 - u) ** 2) * Math.PI * 2.5) * (1 - u) * .8; }) }); },
+    land(id, slot) { air({ from: 2600, to: 1300, Q: .6, gain: .07, attack: .002, dur: .05 }); chime(note(5 + slot), { at: now() + .03, gain: id === 'sol' ? .06 : .025, dur: .4, send: .6, pan: (slot - 2) * .18 }); },
+    lift(slot) { air({ type: 'lowpass', from: 760, to: 480, Q: .3, gain: .045, attack: .1, dur: .22, pan: [(slot - 2) * .18, (slot - 2) * .18] }); },
+    tick() { coo(880, [[0, .9], [.05, 1.12]], { gain: .04, send: 0 }); },
+    arrive() { const at = now(); air({ at, from: 900, to: 2600, gain: .06, attack: .3, dur: .75, send: .4, pan: [.7, 0] }); air({ at: at + .72, buffer: foil, from: 3000, to: 2200, Q: .7, gain: .16, attack: .003, dur: .09 }); coo(note(3), [[0, .9], [.05, 1.03]], { at: at + .78, gain: .05 }); coo(note(5), [[0, .9], [.06, 1.03]], { at: at + .87, gain: .05 }); },
+  };
+}
+let sfx, muted = false;
+try { muted = localStorage.getItem('prism-muted') === '1'; } catch {}
+const muteBtn = $('#mute'); muteBtn.setAttribute('aria-pressed', muted);
+function wake() {
+  if (sfx) { if (sfx.ctx.state === 'suspended') sfx.ctx.resume(); return; }
+  try { const v = voices(new (window.AudioContext || window.webkitAudioContext)()); sfx = Object.fromEntries(Object.entries(v).map(([k, f]) => [k, typeof f === 'function' ? (...a) => { try { return f(...a); } catch {} } : f])); sfx.mute(muted); sfx.ctx.resume(); } catch { sfx = undefined; }
+}
+for (const type of ['pointerdown', 'pointerup', 'click', 'keydown']) addEventListener(type, wake, true);
+muteBtn.addEventListener('click', () => { muted = !muted; muteBtn.setAttribute('aria-pressed', muted); sfx?.mute(muted); if (!muted) sfx?.tick(); try { localStorage.setItem('prism-muted', muted ? '1' : '0'); } catch {} });
+document.addEventListener('visibilitychange', () => { if (document.hidden) sfx?.rip(0); });
+
+measure(); enter(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
